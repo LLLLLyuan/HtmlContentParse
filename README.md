@@ -8,7 +8,7 @@ url = "https://bestyuan.fun/blog/2019-10/%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E4
 response = requests.get(url)
 response.encoding = 'utf-8'
 text = response.text
-htmlcontent =HtmlContentExtract(text ，delete_text_length=5) # 默认为5，可根据实际情况剔除相应长度的无关信息
+htmlcontent =HtmlContentExtract(text ，delete_text_length=5) # 默认为5，可根据实际情况剔除相应长度的垃圾文本
 #print(htmlcontent.title)
 #print(htmlcontent.content)
 time_parse = htmlcontent.time_parse()
