@@ -7,10 +7,11 @@ from lxml import etree
 
 
 class HtmlContentExtract:
-    def __init__(self, htmltext):
+    def __init__(self, htmltext, delete_text_length=None):
         """
         :param htmltext:html文本
-        抽取正文的 标题：self.title 文章详情:self.content 发布日期：self.time_parse()
+        :param delete_text_length:int 需要剔除的垃圾文本长度，默认5
+        抽取正文的标题：self.title 文章详情:self.content 发布日期：self.time_parse()
         :return
         """
         tree = etree.HTML(htmltext)
@@ -18,10 +19,12 @@ class HtmlContentExtract:
         styles = tree.xpath('//style/text()')
         contents = tree.xpath('//*/text() | //br/following::text()[1]')
         copyrights = tree.xpath('//*/text()[contains(.,"©")]')
-        self.title = tree.xpath('//title/text()')[0] if tree.xpath('//title/text()') else None
-        # 剔除 meta的title
-        try: contents.remove(self.title)
-        except: pass
+        title = tree.xpath('//title/text()')[0] if tree.xpath('//title/text()') else None
+        # 剔除 meta 的 title
+        try:
+            contents.remove(title)
+        except:
+            pass
         # 剔除超链接文本，若正文中有超链接的文字，也会被剔除掉
         for pattern in tree.xpath('//*'):
             if pattern.xpath('./@href'):
@@ -29,19 +32,28 @@ class HtmlContentExtract:
                 if text: contents.remove(text[0])
         # 剔除 script 文本
         for i in scripts:
-            try: contents.remove(i)
-            except: pass
-        # 剔除 css样式
+            try:
+                contents.remove(i)
+            except:
+                pass
+        # 剔除 css 样式
         for i in styles:
-            try: contents.remove(i)
-            except: pass
+            try:
+                contents.remove(i)
+            except:
+                pass
         # 剔除 copyright
         for i in copyrights:
-            try: contents.remove(i)
-            except: pass
+            try:
+                contents.remove(i)
+            except:
+                pass
+        self.delete_text_length = delete_text_length if delete_text_length else 5
+        self.title = str(title).strip() if title else None
         self.text = contents
         self.meta_date = self.get_meta_time(tree)
         self.content = '\n'.join([i[1]['NowElement'] for i in self.exclude()])
+
 
     def countwrap(self):
         """
@@ -69,7 +81,7 @@ class HtmlContentExtract:
             # print(num,start,end,position,i)
             realcontent = rp(i).strip()
             if start == 0:
-                if len(realcontent) > 5:
+                if len(realcontent) > self.delete_text_length:
                     start = 1
                     # 将原始元素（文本）赋值给变量
                     NowElement = i
@@ -121,7 +133,7 @@ class HtmlContentExtract:
             # 其他文本长度的计算也剔除空格的影响
             content_statistics = data[i]['NowElement'].strip()
             # 剔除长度小于5的垃圾文本
-            if len(content_statistics) < 5:
+            if len(content_statistics) < self.delete_text_length:
                 datacopy.pop(i)
                 # 在剔除该元素之后把该元素的换行添加到上一个元素上
                 if upindex != 0:
@@ -366,13 +378,13 @@ if __name__ == '__main__':
         'Connection': "keep-alive"
     }
 
-    url = "https://bestyuan.fun/blog/2019-10/%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E4%BA%8Cscrapy%E7%AF%87/"
+    # url = "https://new.qq.com/omn/TWF20191/TWF2019121901810600.html"
+    url = "https://news.163.com/19/1220/04/F0QJIKU30001899N.html"
     response = requests.get(url, headers=headers)
-#     response.encoding = response.apparent_encoding
-    response.encoding = 'utf-8'
+    response.encoding = response.apparent_encoding
     text = response.text
-    # text = "".join(open('../test.html', 'r', encoding="utf-8").readlines())
-    htmlcontent =HtmlContentExtract(text)
+    htmlcontent = HtmlContentExtract(text, delete_text_length=20)
+    print(htmlcontent.title)
     print(htmlcontent.content)
     time_parse = htmlcontent.time_parse()
     print(f"meta_date: {htmlcontent.meta_date}")
