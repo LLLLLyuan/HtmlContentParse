@@ -366,9 +366,10 @@ if __name__ == '__main__':
         'Connection': "keep-alive"
     }
 
-    url = "http://blog.konghy.cn/2018/04/29/setup-dot-py/#part-3786c06db6a9ea0"
+    url = "https://bestyuan.fun/blog/2019-10/%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E4%BA%8Cscrapy%E7%AF%87/"
     response = requests.get(url, headers=headers)
-    response.encoding = response.apparent_encoding
+#     response.encoding = response.apparent_encoding
+    response.encoding = 'utf-8'
     text = response.text
     # text = "".join(open('../test.html', 'r', encoding="utf-8").readlines())
     htmlcontent =HtmlContentExtract(text)
